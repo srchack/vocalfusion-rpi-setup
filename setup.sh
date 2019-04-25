@@ -19,6 +19,11 @@ if [ $# -ge 1 ] && [ $1 = "xvf3510" ] ; then
     pushd $RPI_SETUP_DIR/loader/i2s_master > /dev/null
     make i2s_master
 else
+    if [ "`uname -m`" = "armv6l" ] ; then
+        sed -i 's/3f203000\.i2s/20203000\.i2s/' loader/i2s_slave/loader.c
+    else
+        sed -i 's/20203000\.i2s/3f203000\.i2s/' loader/i2s_slave/loader.c
+    fi
     pushd $RPI_SETUP_DIR/loader/i2s_slave > /dev/null
     make i2s_slave
 fi
