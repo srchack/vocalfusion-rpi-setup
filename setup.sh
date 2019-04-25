@@ -67,7 +67,9 @@ i2s_driver_script=$RPI_SETUP_DIR/resources/load_i2s_driver.sh
 rm -f $i2s_driver_script
 if [ $# -eq 1 ] && [ $1 = "codama" ] ; then
     sudo cp $RPI_SETUP_DIR/loader/i2s_slave/loader.ko /lib/modules/`uname -r`/kernel/sound/drivers/
-    sudo sed -i -e '$ a loader' /etc/modules-load.d/modules.conf
+    if ! grep -q "loader" /etc/modules-load.d/modules.conf; then
+        sudo sed -i -e '$ a loader' /etc/modules-load.d/modules.conf
+    fi
 else
 echo "cd $RPI_SETUP_DIR"                          >> $i2s_driver_script
 if [ $# -ge 1 ] && [ $1 = "xvf3510" ] ; then
@@ -129,8 +131,12 @@ rm -f $i2c_driver_script
 if [ $# -eq 1 ] && [ $1 = "codama" ] ; then
     sudo cp $RPI_SETUP_DIR/i2c-gpio-param/i2c-gpio-param.ko /lib/modules/`uname -r`/kernel/drivers/i2c/
     sudo depmod -ae
-    sudo sed -i -e '$ a i2c-gpio-param' /etc/modules-load.d/modules.conf
-    sudo sed -i -e '$ a options i2c-gpio-param busid=1 sda=2 scl=3 udelay=5 timeout=100 sda_od=0 scl_od=0 scl_oo=0' /etc/modprobe.d/i2c.conf
+    if ! grep -q "i2c-gpio-param" /etc/modules-load.d/modules.conf; then
+        sudo sed -i -e '$ a i2c-gpio-param' /etc/modules-load.d/modules.conf
+    fi
+    if ! grep -q "options i2c-gpio-param busid=1 sda=2 scl=3 udelay=5 timeout=100 sda_od=0 scl_od=0 scl_oo=0" /etc/modprobe.d/i2c.conf; then
+        sudo sed -i -e '$ a options i2c-gpio-param busid=1 sda=2 scl=3 udelay=5 timeout=100 sda_od=0 scl_od=0 scl_oo=0' /etc/modprobe.d/i2c.conf
+    fi
 else
     echo "cd $RPI_SETUP_DIR/i2c-gpio-param"                                            >> $i2c_driver_script
     echo "# Load the i2c bit banged driver"                                            >> $i2c_driver_script
