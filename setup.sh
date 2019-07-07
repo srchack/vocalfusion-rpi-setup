@@ -12,7 +12,10 @@ sudo sed -i -e 's/#dtparam=i2s=on/dtparam=i2s=on/' /boot/config.txt
 echo "Installing Raspberry Pi kernel headers"
 sudo apt-get install -y raspberrypi-kernel-headers
 
-
+if [ $# -eq 1 ] && [ $1 = "codama" ] ; then
+    echo "Installing libncurses5"
+    sudo apt-get install -y libncurses5
+fi
 
 # Build loader and insert it into the kernel
 if [ $# -ge 1 ] && [ $1 = "xvf3510" ] ; then
@@ -120,22 +123,36 @@ fi
 
 
 # Build a new I2C driver
-pushd $RPI_SETUP_DIR/i2c-gpio-param > /dev/null
-make || exit $?
-popd > /dev/null
-
+if [ $# -eq 1 ] && [ $1 != "codama" ] ; then
+    pushd $RPI_SETUP_DIR/i2c-gpio-param > /dev/null
+    make || exit $?
+    popd > /dev/null
+else
+    if [ "`uname -r | cut -d. -f1-2`" != "4.19" ] ; then
+        pushd $RPI_SETUP_DIR/i2c-gpio-param > /dev/null
+        make || exit $?
+        popd > /dev/null
+    fi
+fi
 
 # Create script to insert module into the kernel
 i2c_driver_script=$RPI_SETUP_DIR/resources/load_i2c_gpio_driver.sh
 rm -f $i2c_driver_script
 if [ $# -eq 1 ] && [ $1 = "codama" ] ; then
-    sudo cp $RPI_SETUP_DIR/i2c-gpio-param/i2c-gpio-param.ko /lib/modules/`uname -r`/kernel/drivers/i2c/
-    sudo depmod -ae
-    if ! grep -q "i2c-gpio-param" /etc/modules-load.d/modules.conf; then
-        sudo sed -i -e '$ a i2c-gpio-param' /etc/modules-load.d/modules.conf
-    fi
-    if ! grep -q "options i2c-gpio-param busid=1 sda=2 scl=3 udelay=5 timeout=100 sda_od=0 scl_od=0 scl_oo=0" /etc/modprobe.d/i2c.conf; then
-        sudo sed -i -e '$ a options i2c-gpio-param busid=1 sda=2 scl=3 udelay=5 timeout=100 sda_od=0 scl_od=0 scl_oo=0' /etc/modprobe.d/i2c.conf
+    if [ "`uname -r | cut -d. -f1-2`" = "4.19" ] ; then
+        sudo depmod -ae
+        if ! grep -q "dtoverlay=i2c-gpio,bus=3,i2c_gpio_sda=2,i2c_gpio_scl=3,i2c_gpio_delay_us=5,timeout-ms=100" /boot/config.txt; then
+            sudo sed -i -e '$ a dtoverlay=i2c-gpio,bus=3,i2c_gpio_sda=2,i2c_gpio_scl=3,i2c_gpio_delay_us=5,timeout-ms=100' /boot/config.txt
+        fi
+    else
+        sudo cp $RPI_SETUP_DIR/i2c-gpio-param/i2c-gpio-param.ko /lib/modules/`uname -r`/kernel/drivers/i2c/
+        sudo depmod -ae
+        if ! grep -q "i2c-gpio-param" /etc/modules-load.d/modules.conf; then
+            sudo sed -i -e '$ a i2c-gpio-param' /etc/modules-load.d/modules.conf
+        fi
+        if ! grep -q "options i2c-gpio-param busid=1 sda=2 scl=3 udelay=5 timeout=100 sda_od=0 scl_od=0 scl_oo=0" /etc/modprobe.d/i2c.conf; then
+            sudo sed -i -e '$ a options i2c-gpio-param busid=1 sda=2 scl=3 udelay=5 timeout=100 sda_od=0 scl_od=0 scl_oo=0' /etc/modprobe.d/i2c.conf
+        fi
     fi
 else
     echo "cd $RPI_SETUP_DIR/i2c-gpio-param"                                            >> $i2c_driver_script
