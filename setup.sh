@@ -46,6 +46,7 @@ fi
 # Check args for asoundrc selection. Default to VF Stereo.
 if [ $# -eq 1 ] && [ $1 = "codama" ] ; then
     cp $RPI_SETUP_DIR/resources/asoundrc_vf_codama ~/.asoundrc
+    sudo cp $RPI_SETUP_DIR/resources/asoundrc_vf_codama /root/.asoundrc
 elif [ $# -eq 1 ] && [ $1 = "vocalfusion" ] ; then
     cp $RPI_SETUP_DIR/resources/asoundrc_vf ~/.asoundrc
 elif [ $# -ge 1 ] && [ $1 = "xvf3510" ] ; then
@@ -59,6 +60,9 @@ cp $RPI_SETUP_DIR/resources/panel ~/.config/lxpanel/LXDE-pi/panels/panel
 # Make the asoundrc file read-only otherwise lxpanel rewrites it
 # as it doesn't support anything but a hardware type device
 chmod a-w ~/.asoundrc
+if [ $# -eq 1 ] && [ $1 = "codama" ] ; then
+    sudo chmod a-w /root/.asoundrc
+fi
 
 
 # Apply changes
@@ -154,6 +158,9 @@ if [ $# -eq 1 ] && [ $1 = "codama" ] ; then
             sudo sed -i -e '$ a options i2c-gpio-param busid=1 sda=2 scl=3 udelay=5 timeout=100 sda_od=0 scl_od=0 scl_oo=0' /etc/modprobe.d/i2c.conf
         fi
     fi
+    sudo sed -i -e '$i \# Run Alsa at startup so that alsamixer configures' /etc/rc.local
+    sudo sed -i -e '$i \arecord -d 1 > /dev/null 2>&1' /etc/rc.local
+    sudo sed -i -e '$i \aplay dummy > /dev/null 2>&1' /etc/rc.local
 else
     echo "cd $RPI_SETUP_DIR/i2c-gpio-param"                                            >> $i2c_driver_script
     echo "# Load the i2c bit banged driver"                                            >> $i2c_driver_script
