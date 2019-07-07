@@ -12,9 +12,9 @@ This repository provides a simple-to-use automated script to configure the Raspb
 
 ## Setup
 
-1. Install **Raspbian Stretch** on the Raspberry Pi.
+1. Install **Raspbian Stretch** or **Raspbian Buster** on the Raspberry Pi.
 
-2. Update kernel package version to 1.20190215-1.
+2. Update kernel package version.
 
    ```
    sudo apt-get update
