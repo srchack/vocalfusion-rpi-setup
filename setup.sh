@@ -42,6 +42,9 @@ if [ -e /usr/share/alsa/pulse-alsa.conf ] ; then
     sudo mv /usr/share/alsa/pulse-alsa.conf  /usr/share/alsa/pulse-alsa.conf.bak
     sudo mv ~/.config/lxpanel/LXDE-pi/panels/panel ~/.config/lxpanel/LXDE-pi/panels/panel.bak
 fi
+if [ -e ~/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-mixer.xml ] ; then
+  cp ~/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-mixer.xml ~/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-mixer.xml.bak
+fi
 
 # Check args for asoundrc selection. Default to VF Stereo.
 if [ $# -eq 1 ] && [ $1 = "codama" ] ; then
@@ -56,6 +59,9 @@ else
 fi
 
 cp $RPI_SETUP_DIR/resources/panel ~/.config/lxpanel/LXDE-pi/panels/panel
+mkdir -p ~/.config/xfce4/xfconf/xfce-perchannel-xml/
+cp $RPI_SETUP_DIR/resources/xfce4-mixer.xml ~/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-mixer.xml
+chmod 700 ~/.config/xfce4/xfconf/xfce-perchannel-xml
 
 # Make the asoundrc file read-only otherwise lxpanel rewrites it
 # as it doesn't support anything but a hardware type device
